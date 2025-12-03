@@ -37,26 +37,8 @@
 
 <body>
 
-<script>
-    window.onload = function() {
-        window.print();
-    };
-    const params = new URLSearchParams(window.location.search);
-    document.title = "Invoice - " + (params.get("cpName") || "Client");
-    const cpName = params.get("cpName");
-    const cpAddress = params.get("cpAddress");
-    const cpAddress2 = params.get("cpAddress2");
-    const invNumber = params.get("invNumber");
-    const totalDesc = parseInt(params.get("totalDesc") || 1);
-
-    const dueAmount = params.get("dueAmount");
-    const paymentReceived = params.get("paymentReceived");
-</script>
-
-<!-- HEADER -->
 <div class="header">
     <img src="tcps_h_logo.png" alt="Total Care Logo">
-
     <div class="company-details">
         <b>Address:</b> 3 1-5 Austral Street, Penshurst NSW 2222, Sydney, Australia <br>
         <b>Email:</b> tcps@gmail.com <br>
@@ -68,100 +50,47 @@
 <div class="content">
     <div class="invoice-title">INVOICE</div>
 
-    <!-- LEFT SIDE -->
     <div class="invoice-to">
         <b>Invoice To</b><br><br>
-        <script>
-            document.write(cpName + "<br>");
-            document.write(cpAddress + "<br>");
-            document.write(cpAddress2 + "<br>");
-        </script>
+        <div id="invoiceTo"></div>
     </div>
 
-    <!-- RIGHT SIDE -->
     <div class="invoice-info">
         <div class="info-row">
             <span><b>Invoice No:</b></span>
-            <span><script>document.write(invNumber);</script></span>
+            <span id="invoiceNumber"></span>
         </div>
 
         <div class="info-row">
             <span><b>Invoice Date:</b></span>
-            <span><script>document.write(new Date().toLocaleDateString());</script></span>
+            <span id="invoiceDate"></span>
         </div>
 
         <div class="amount-box">
             <span class="label">Total Due (in AUD)</span>
-            <script>document.write(dueAmount); </script>
+            <p id="totalDue"></p>
         </div>
 
         <div class="due-box">
             <span class="label">Due Date</span>
-            <script>
-                let d = new Date();
-                d.setDate(d.getDate() + 14);
-                document.write(d.toLocaleDateString());
-            </script>
+            <p id="dueDate"></p>
         </div>
     </div>
 
-    <!-- DYNAMIC TABLE -->
     <table>
-        <tr>
-            <th>Description</th>
-            <th>Fee</th>
-            <th>Tax Amount</th>
-            <th>Total (Incl. TAX)</th>
-        </tr>
-
+        <thead>
+            <tr>
+                <th>Description</th>
+                <th>Fee</th>
+                <th>Tax Amount</th>
+                <th>Total (Incl. TAX)</th>
+            </tr>
+        </thead>
         <tbody id="descTable"></tbody>
         <tfoot id="totalRow"></tfoot>
-
-        
-<script>
-    let table = "";
-    let totalFees = 0;
-    let totalTax = 0;
-    let grandTotal = 0;
-    
-    for (let i = 1; i <= totalDesc; i++) {
-        let desc = params.get("desc" + i) || "Description " + i;
-        let fee = parseFloat(params.get("fee" + i) || 0);
-        let tax = parseFloat(params.get("tax" + i) || 0);
-        let total = fee + tax;
-
-        totalFees += fee;
-        totalTax += tax;
-        grandTotal += total;
-
-        table += `
-        <tr>
-            <td>${desc}</td>
-            <td>$${fee.toFixed(2)}</td>
-            <td>$${tax.toFixed(2)}</td>
-            <td>$${total.toFixed(2)}</td>
-        </tr>`;
-    }
-    
-    document.getElementById("descTable").innerHTML = table;
-
-    // Add the TOTAL ROW
-    document.getElementById("totalRow").innerHTML = `
-        <tr style="font-weight: bold; background:#f0f0f0;">
-            <td style="text-align:right;">TOTAL:</td>
-            <td>$${totalFees.toFixed(2)}</td>
-            <td>$${totalTax.toFixed(2)}</td>
-            <td>$${grandTotal.toFixed(2)}</td>
-        </tr>
-    `;
-
-    // Update Top Total Due Box
-    
-</script>
     </table>
 </div>
 
-<!-- FOOTER -->
 <div class="footer">
     <div class="footer-box">
         <div class="title">Payment Details</div>
@@ -175,19 +104,85 @@
     <div class="footer-box">
         <div class="title">Payment Received</div>
         <div class="content">
-            <b>Total (in AUD):</b>
-            <script>
-                document.write(paymentReceived ? "$" + paymentReceived : "None");
-            </script>
-            <br><br>
-            <b>Grand Total (from items):</b>
-            <script>
-                document.write("$" + grandTotal.toFixed(2));
-            </script>
+            <b>Total (in AUD):</b> <span id="paymentReceivedDisplay"></span> <br><br>
+            <b>Grand Total (from items):</b> <span id="grandTotalDisplay"></span>
         </div>
     </div>
 </div>
 
+<script>
+    const params = new URLSearchParams(window.location.search);
+
+    // Invoice info
+    const cpName = params.get("cpName") || "";
+    const cpAddress = params.get("cpAddress") || "";
+    const cpAddress2 = params.get("cpAddress2") || "";
+    const invNumber = params.get("invNumber") || "";
+    const totalDesc = parseInt(params.get("totalDesc") || 0);
+    const paymentReceived = parseFloat(params.get("paymentReceived") || 0);
+    const dueAmountInput = parseFloat(params.get("dueAmount") || 0);
+
+    // Set invoice header
+    document.getElementById("invoiceTo").innerHTML = `${cpName}<br>${cpAddress}<br>${cpAddress2}`;
+    document.getElementById("invoiceNumber").textContent = invNumber;
+    document.getElementById("invoiceDate").textContent = new Date().toLocaleDateString();
+
+    // Set due date (14 days from today)
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 14);
+    document.getElementById("dueDate").textContent = dueDate.toLocaleDateString();
+
+    // Build table
+    let tableHtml = "";
+    let totalFees = 0;
+    let totalTax = 0;
+    let grandTotal = 0;
+
+    for (let i = 1; i <= totalDesc; i++) {
+        const desc = params.get(`desc${i}`) || `Description ${i}`;
+        const fee = parseFloat(params.get(`fee${i}`) || 0);
+        const tax = parseFloat(params.get(`tax${i}`) || 0);
+        const total = fee + tax;
+
+        totalFees += fee;
+        totalTax += tax;
+        grandTotal += total;
+
+        tableHtml += `
+            <tr>
+                <td>${desc}</td>
+                <td>$${fee.toFixed(2)}</td>
+                <td>$${tax.toFixed(2)}</td>
+                <td>$${total.toFixed(2)}</td>
+            </tr>
+        `;
+    }
+
+    document.getElementById("descTable").innerHTML = tableHtml;
+
+    // Total row
+    document.getElementById("totalRow").innerHTML = `
+        <tr style="font-weight: bold; background:#f0f0f0;">
+            <td style="text-align:right;">TOTAL:</td>
+            <td>$${totalFees.toFixed(2)}</td>
+            <td>$${totalTax.toFixed(2)}</td>
+            <td>$${grandTotal.toFixed(2)}</td>
+        </tr>
+    `;
+
+    // Calculate remaining due
+    const remainingDue = dueAmountInput > 0 ? dueAmountInput - paymentReceived : grandTotal - paymentReceived;
+    document.getElementById("totalDue").textContent = `$${remainingDue.toFixed(2)}`;
+
+    // Footer displays
+    document.getElementById("paymentReceivedDisplay").textContent = `$${paymentReceived.toFixed(2)}`;
+    document.getElementById("grandTotalDisplay").textContent = `$${grandTotal.toFixed(2)}`;
+
+    // Trigger print after everything is rendered
+    window.onload = function() {
+        window.print();
+    };
+</script>
+
 </body>
 </html>
-
