@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Invoice</title>
+<style>
+    body { font-family: Arial; margin: 0; padding: 0; }
+    .header { display: flex; justify-content: space-between; padding: 20px; border-bottom: 3px solid #000; }
+    .header img { height: 90px; }
+    .company-details { text-align: right; font-size: 14px; }
+
+    .content { padding: 25px; }
+    .invoice-title { font-size: 28px; margin-bottom: 15px; }
+
+    .invoice-to { margin-bottom: 30px; font-size: 15px; }
+
+    .invoice-info { float: right; width: 260px; margin-top: -120px; }
+    .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+
+    .amount-box, .due-box {
+        border: 1px solid #000; padding: 10px; margin-top: 10px;
+    }   
+    .amount-box .label, .due-box .label {
+        background: #d9d9d9; text-align: center; padding: 5px; margin-bottom: 5px; font-weight: bold;
+    }
+
+    table { width: 100%; border-collapse: collapse; margin-top: 40px; }
+    table th { background: #707070; color: #fff; padding: 8px; border: 1px solid black; }
+    table td { padding: 8px; border: 1px solid black; }
+
+    .footer { display: flex; justify-content: space-between; padding: 25px; }
+    .footer-box { width: 45%; border: 1px solid black; font-size: 14px; }
+    .footer-box .title { background: #d9d9d9; padding: 8px; font-weight: bold; border-bottom: 1px solid black; }
+    .footer-box .content { padding: 10px; }
+</style>
+</head>
+
+<body>
+
+<script>
+    window.onload = function() {
+        window.print();
+    };
+    const params = new URLSearchParams(window.location.search);
+    document.title = "Invoice - " + (params.get("cpName") || "Client");
+    const cpName = params.get("cpName");
+    const cpAddress = params.get("cpAddress");
+    const cpAddress2 = params.get("cpAddress2");
+    const invNumber = params.get("invNumber");
+    const totalDesc = parseInt(params.get("totalDesc") || 1);
+
+    const dueAmount = params.get("dueAmount");
+    const paymentReceived = params.get("paymentReceived");
+</script>
+
+<!-- HEADER -->
+<div class="header">
+    <img src="tcps_h_logo.png" alt="Total Care Logo">
+
+    <div class="company-details">
+        <b>Address:</b> 3 1-5 Austral Street, Penshurst NSW 2222, Sydney, Australia <br>
+        <b>Email:</b> tcps@gmail.com <br>
+        <b>Phone:</b> +0452 514 024 <br>
+        <b>ABN:</b> 64 732 431 375
+    </div>
+</div>
+
+<div class="content">
+    <div class="invoice-title">INVOICE</div>
+
+    <!-- LEFT SIDE -->
+    <div class="invoice-to">
+        <b>Invoice To</b><br><br>
+        <script>
+            document.write(cpName + "<br>");
+            document.write(cpAddress + "<br>");
+            document.write(cpAddress2 + "<br>");
+        </script>
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="invoice-info">
+        <div class="info-row">
+            <span><b>Invoice No:</b></span>
+            <span><script>document.write(invNumber);</script></span>
+        </div>
+
+        <div class="info-row">
+            <span><b>Invoice Date:</b></span>
+            <span><script>document.write(new Date().toLocaleDateString());</script></span>
+        </div>
+
+        <div class="amount-box">
+            <span class="label">Total Due (in AUD)</span>
+            <script>
+                document.write(dueAmount ? "$" + dueAmount : "Not specified");
+            </script>
+        </div>
+
+        <div class="due-box">
+            <span class="label">Due Date</span>
+            <script>
+                let d = new Date();
+                d.setDate(d.getDate() + 14);
+                document.write(d.toLocaleDateString());
+            </script>
+        </div>
+    </div>
+
+    <!-- DYNAMIC TABLE -->
+    <table>
+        <tr>
+            <th>Description</th>
+            <th>Fee</th>
+            <th>Tax Amount</th>
+            <th>Total (Incl. TAX)</th>
+        </tr>
+
+        <tbody id="descTable"></tbody>
+        <tfoot id="totalRow"></tfoot>
+
+        
+<script>
+    let table = "";
+    let totalFees = 0;
+    let totalTax = 0;
+    let grandTotal = 0;
+
+    for (let i = 1; i <= totalDesc; i++) {
+        let desc = params.get("desc" + i) || "Description " + i;
+        let fee = parseFloat(params.get("fee" + i) || 0);
+        let tax = parseFloat(params.get("tax" + i) || 0);
+        let total = fee + tax;
+
+        totalFees += fee;
+        totalTax += tax;
+        grandTotal += total;
+
+        table += `
+        <tr>
+            <td>${desc}</td>
+            <td>$${fee.toFixed(2)}</td>
+            <td>$${tax.toFixed(2)}</td>
+            <td>$${total.toFixed(2)}</td>
+        </tr>`;
+    }
+
+    document.getElementById("descTable").innerHTML = table;
+
+    // Add the TOTAL ROW
+    document.getElementById("totalRow").innerHTML = `
+        <tr style="font-weight: bold; background:#f0f0f0;">
+            <td style="text-align:right;">TOTAL:</td>
+            <td>$${totalFees.toFixed(2)}</td>
+            <td>$${totalTax.toFixed(2)}</td>
+            <td>$${grandTotal.toFixed(2)}</td>
+        </tr>
+    `;
+
+    // Update Top Total Due Box
+    document.getElementById("totalDueDisplay").innerHTML = "$" + grandTotal.toFixed(2);
+</script>
+    </table>
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+    <div class="footer-box">
+        <div class="title">Payment Details</div>
+        <div class="content">
+            Commonwealth Bank BSB: 067873 <br>
+            Account Number: 20878818 <br>
+            Account Name: Total Care Property Solutions Australia
+        </div>
+    </div>
+
+    <div class="footer-box">
+        <div class="title">Payment Received</div>
+        <div class="content">
+            <b>Total (in AUD):</b>
+            <script>
+                document.write(paymentReceived ? "$" + paymentReceived : "None");
+            </script>
+            <br><br>
+            <b>Grand Total (from items):</b>
+            <script>
+                document.write("$" + grandTotal.toFixed(2));
+            </script>
+        </div>
+    </div>
+</div>
+
+</body>
+</html>
