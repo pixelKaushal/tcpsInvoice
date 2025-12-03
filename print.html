@@ -92,9 +92,7 @@
 
         <div class="amount-box">
             <span class="label">Total Due (in AUD)</span>
-            <script>
-                document.write(dueAmount ? "$" + dueAmount : "Not specified");
-            </script>
+            <p id="dueAmount">Not Specified</p>
         </div>
 
         <div class="due-box">
@@ -125,7 +123,7 @@
     let totalFees = 0;
     let totalTax = 0;
     let grandTotal = 0;
-
+    const dueAmountBox = document.getElementById("dueAmount");
     for (let i = 1; i <= totalDesc; i++) {
         let desc = params.get("desc" + i) || "Description " + i;
         let fee = parseFloat(params.get("fee" + i) || 0);
@@ -144,7 +142,7 @@
             <td>$${total.toFixed(2)}</td>
         </tr>`;
     }
-
+    dueAmountBox.innerHTML = paymentReceived ? "$" + (grandTotal - parseFloat(paymentReceived)).toFixed(2) : "$" + grandTotal.toFixed(2);
     document.getElementById("descTable").innerHTML = table;
 
     // Add the TOTAL ROW
