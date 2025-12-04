@@ -104,10 +104,10 @@
         <input type="number" id="totalDesc" name="totalDesc" placeholder="Total number of descriptions" required>
 
         <label for="dueAmount">Due Amount:</label>
-        <input type="number" id="dueAmount" name="dueAmount" placeholder="Total due amount">
+        <input type="number" id="dueAmount" name="dueAmount" placeholder="Total due amount" step="any">
 
         <label for="paymentReceived">Payment Received:</label>
-        <input type="number" id="paymentReceived" name="paymentReceived" placeholder="Total payment received">
+        <input type="number" id="paymentReceived" name="paymentReceived" placeholder="Total payment received" step="any">
 
         <button onclick="showInput(event)" type="button">Type Descriptions</button>
         <div class="showInput"></div>
@@ -132,10 +132,10 @@
             <input type="text" id="desc${i}" name="desc${i}" placeholder="Description ${i} here">
 
             <label for="fee${i}">Fee ${i}:</label>
-            <input type="number" id="fee${i}" name="fee${i}" placeholder="Fee ${i} here">
+            <input type="number" id="fee${i}" name="fee${i}" placeholder="Fee ${i} here" step="any">
 
             <label for="tax${i}">Tax Amount ${i}:</label>
-            <input type="number" id="tax${i}" name="tax${i}" placeholder="Tax ${i} here">
+            <input type="number" id="tax${i}" name="tax${i}" placeholder="Tax ${i} here" step="any">
         `;
     }
 
@@ -146,6 +146,4 @@
 </script>
 </body>
 </html>
-
-
 

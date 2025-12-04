@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>Invoice</title>
+
+<!-- html2pdf library (for download PDF) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
 <style>
     body { font-family: Arial; margin: 0; padding: 0; }
     .header { display: flex; justify-content: space-between; padding: 20px; border-bottom: 3px solid #000; }
@@ -35,7 +39,7 @@
 </style>
 </head>
 
-<body>
+<body id="invoicePage">
 
 <div class="header">
     <img src="tcps_h_logo.png" alt="Total Care Logo">
@@ -113,7 +117,6 @@
 <script>
     const params = new URLSearchParams(window.location.search);
 
-    // Invoice info
     const cpName = params.get("cpName") || "";
     const cpAddress = params.get("cpAddress") || "";
     const cpAddress2 = params.get("cpAddress2") || "";
@@ -122,17 +125,14 @@
     const paymentReceived = parseFloat(params.get("paymentReceived") || 0);
     const dueAmountInput = parseFloat(params.get("dueAmount") || 0);
 
-    // Set invoice header
     document.getElementById("invoiceTo").innerHTML = `${cpName}<br>${cpAddress}<br>${cpAddress2}`;
     document.getElementById("invoiceNumber").textContent = invNumber;
     document.getElementById("invoiceDate").textContent = new Date().toLocaleDateString();
 
-    // Set due date (14 days from today)
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 14);
     document.getElementById("dueDate").textContent = dueDate.toLocaleDateString();
 
-    // Build table
     let tableHtml = "";
     let totalFees = 0;
     let totalTax = 0;
@@ -160,7 +160,6 @@
 
     document.getElementById("descTable").innerHTML = tableHtml;
 
-    // Total row
     document.getElementById("totalRow").innerHTML = `
         <tr style="font-weight: bold; background:#f0f0f0;">
             <td style="text-align:right;">TOTAL:</td>
@@ -170,18 +169,27 @@
         </tr>
     `;
 
-    // Calculate remaining due
     const remainingDue = dueAmountInput > 0 ? dueAmountInput - paymentReceived : grandTotal - paymentReceived;
     document.getElementById("totalDue").textContent = `$${remainingDue.toFixed(2)}`;
 
-    // Footer displays
     document.getElementById("paymentReceivedDisplay").textContent = `$${paymentReceived.toFixed(2)}`;
     document.getElementById("grandTotalDisplay").textContent = `$${grandTotal.toFixed(2)}`;
 
-    // Trigger print after everything is rendered
-    window.onload = function() {
-        window.print();
-    };
+    // AUTO-DOWNLOAD PDF
+    // ASK USER BEFORE DOWNLOADING
+window.onload = function () {
+    const wantDownload = confirm("Do you want to download this invoice as PDF?");
+
+    if (wantDownload) {
+        const invoiceElement = document.getElementById("invoicePage");
+
+        html2pdf()
+            .from(invoiceElement)
+            .save("invoice.pdf");
+    }
+    window.print();
+};
+
 </script>
 
 </body>
