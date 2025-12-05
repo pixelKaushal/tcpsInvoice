@@ -14,7 +14,7 @@
 
 <h2>📁 File Structure</h2>
 <pre>
-invoice-generator/
+tcpsInvoice/
 │
 ├── index.html        # Input form page
 ├── print.html        # Invoice preview + PDF generation
