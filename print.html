@@ -141,7 +141,7 @@
     for (let i = 1; i <= totalDesc; i++) {
         const desc = params.get(`desc${i}`) || `Description ${i}`;
         const fee = parseFloat(params.get(`fee${i}`) || 0);
-        const tax = parseFloat(params.get(`tax${i}`) || 0);
+        const tax = fee * 0.1; // 10% tax
         const total = fee + tax;
 
         totalFees += fee;
